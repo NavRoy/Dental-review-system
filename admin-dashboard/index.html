@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Review Manager — Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #1a73e8;
+      --blue-dark: #1557b0;
+      --green: #2e7d32;
+      --red: #c62828;
+      --bg: #f0f4f8;
+      --white: #fff;
+      --border: #e0e0e0;
+      --text: #333;
+      --muted: #888;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 220px;
+      background: #1a1f36;
+      color: #c8cfdd;
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .sidebar-logo {
+      padding: 0 20px 24px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 16px;
+    }
+    .sidebar-logo span { font-size: 1.4rem; }
+    .nav-item {
+      padding: 11px 20px;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background 0.2s;
+      font-size: 0.92rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-item.active { background: var(--blue); color: #fff; }
+    .nav-logout {
+      margin-top: auto;
+      padding: 11px 20px;
+      cursor: pointer;
+      color: #e57373;
+      font-size: 0.92rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logout:hover { color: #fff; }
+
+    /* ── MAIN CONTENT ── */
+    .main { flex: 1; overflow-y: auto; }
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topbar h2 { font-size: 1.1rem; font-weight: 600; }
+    .admin-badge {
+      background: #e8f0fe;
+      color: var(--blue);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+    .content { padding: 28px; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── CARDS / STATS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    }
+    .stat-card .label { font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; }
+    .stat-card .value { font-size: 2rem; font-weight: 700; color: var(--text); }
+    .stat-card .value.green { color: var(--green); }
+    .stat-card .value.blue { color: var(--blue); }
+    .stat-card .value.orange { color: #e65100; }
+
+    /* ── FORMS ── */
+    .card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      margin-bottom: 20px;
+    }
+    .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 18px; color: #1a1f36; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      outline: none;
+      transition: border 0.2s;
+      font-family: inherit;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus { border-color: var(--blue); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-group .hint { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.92rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: var(--blue-dark); }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--blue);
+      color: var(--blue);
+    }
+    .btn-outline:hover { background: var(--blue); color: #fff; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── REVIEWS TABLE ── */
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid #f0f0f0; }
+    th { background: #f8f9fa; font-size: 0.82rem; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+    td { font-size: 0.9rem; }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .badge-pending { background: #e8f5e9; color: #2e7d32; }
+    .badge-used { background: #fce4ec; color: #c62828; }
+
+    /* ── QR CODE ── */
+    .qr-section { text-align: center; padding: 20px; }
+    .qr-section img { border: 3px solid var(--blue); border-radius: 12px; padding: 10px; background: #fff; }
+    .qr-url {
+      margin-top: 12px;
+      font-size: 0.9rem;
+      color: var(--blue);
+      word-break: break-all;
+      font-family: monospace;
+    }
+
+    /* ── ALERTS ── */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .alert.show { display: block; }
+    .alert-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .alert-error { background: #fce4ec; color: #c62828; border: 1px solid #ef9a9a; }
+    .alert-info { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+
+    /* ── LOGIN SCREEN ── */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #1a1f36;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .login-card h1 {
+      font-size: 1.4rem;
+      margin-bottom: 6px;
+      color: #1a1f36;
+    }
+    .login-card p { color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; }
+
+    /* ── LOW REVIEWS WARNING ── */
+    .warning-banner {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── LOGIN SCREEN ───────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>🦷 Review Manager</h1>
+    <p>Sign in to manage your review templates</p>
+    <div class="alert alert-error" id="login-error"></div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="admin@yourhospital.com" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" />
+    </div>
+    <button class="btn btn-primary" style="width:100%;padding:12px;" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- ─── ADMIN DASHBOARD ───────────────────────────────────────── -->
+<div id="dashboard" style="display:none;">
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-logo"><span>🦷</span> Review Manager</div>
+      <div class="nav-item active" data-page="overview" onclick="showPage('overview', this)">📊 Overview</div>
+      <div class="nav-item" data-page="keywords" onclick="showPage('keywords', this)">🔑 Keywords & AI</div>
+      <div class="nav-item" data-page="reviews" onclick="showPage('reviews', this)">📋 Reviews Pool</div>
+      <div class="nav-item" data-page="qr" onclick="showPage('qr', this)">📱 QR Code</div>
+      <div class="nav-item" data-page="settings" onclick="showPage('settings', this)" id="settings-nav" style="display:none;">⚙️ Settings</div>
+      <div class="nav-logout" onclick="doLogout()">🚪 Sign Out</div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <h2 id="topbar-title">Overview</h2>
+        <div class="admin-badge" id="admin-name-badge">Admin</div>
+      </div>
+      <div class="content">
+
+        <!-- ── OVERVIEW ── -->
+        <div class="page active" id="page-overview">
+          <div id="low-reviews-warning" class="warning-banner" style="display:none;">
+            ⚠️ <strong>Low on reviews!</strong>&nbsp; Less than 5 reviews remaining. Go to Keywords & AI to regenerate.
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="label">Available Reviews</div>
+              <div class="value green" id="stat-pending">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Reviews Used</div>
+              <div class="value blue" id="stat-used">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Posted Today</div>
+              <div class="value orange" id="stat-today">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Posted This Week</div>
+              <div class="value" id="stat-week">—</div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Quick Actions</h3>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <button class="btn btn-primary" onclick="showPage('keywords', document.querySelector('[data-page=keywords]'))">🔄 Regenerate Reviews</button>
+              <button class="btn btn-outline" onclick="showPage('qr', document.querySelector('[data-page=qr]'))">📱 Get QR Code</button>
+              <button class="btn btn-outline" onclick="resetUsed()">♻️ Reset Used Reviews</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>How it works</h3>
+            <ol style="padding-left:20px;line-height:2;color:#555;font-size:0.9rem;">
+              <li>Staff scans the QR code at reception</li>
+              <li>They pick a review template from the list</li>
+              <li>Tap "Copy & Post" — text is copied, Google opens</li>
+              <li>They paste and submit on Google</li>
+              <li>That review is removed from the pool automatically</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- ── KEYWORDS & AI ── -->
+        <div class="page" id="page-keywords">
+          <div class="alert alert-success" id="keywords-success"></div>
+          <div class="alert alert-error" id="keywords-error"></div>
+          <div class="card">
+            <h3>🤖 Update Keywords → Regenerate Reviews</h3>
+            <p style="font-size:0.88rem;color:#666;margin-bottom:20px;">
+              Enter keywords that describe your clinic. The AI will generate 20 fresh review templates based on these.
+              All current PENDING reviews will be replaced with new ones.
+            </p>
+            <div class="form-group">
+              <label>Business Name</label>
+              <input type="text" id="kw-name" placeholder="e.g. Smile Dental Clinic" />
+            </div>
+            <div class="form-group">
+              <label>Location</label>
+              <input type="text" id="kw-location" placeholder="e.g. Anna Nagar, Chennai" />
+            </div>
+            <div class="form-group">
+              <label>Keywords (comma separated)</label>
+              <textarea id="kw-keywords" placeholder="painless treatment, experienced dentists, clean clinic, implants, braces, root canal, children-friendly, weekend appointments"></textarea>
+              <div class="hint">Include: specialties, location, what makes you different, treatments you offer</div>
+            </div>
+            <div class="form-group">
+              <label>Review Categories (comma separated, leave blank for default)</label>
+              <input type="text" id="kw-categories" placeholder="Treatment Quality, Doctor & Staff, Cleanliness & Comfort, Overall Experience" />
+              <div class="hint">Default: Treatment Quality, Doctor & Staff, Cleanliness & Comfort, Overall Experience</div>
+            </div>
+            <button class="btn btn-primary" id="kw-btn" onclick="updateKeywords()">
+              🔄 Generate New Reviews with AI
+            </button>
+          </div>
+        </div>
+
+        <!-- ── REVIEWS POOL ── -->
+        <div class="page" id="page-reviews">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+              <h3 style="margin:0;">Review Templates</h3>
+              <div style="display:flex;gap:8px;">
+                <select id="reviews-filter" onchange="loadReviews()" style="padding:7px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:0.88rem;">
+                  <option value="">All</option>
+                  <option value="PENDING">Available</option>
+                  <option value="USED">Used</option>
+                </select>
+              </div>
+            </div>
+            <div id="reviews-table-container">Loading...</div>
+          </div>
+
+          <!-- Manual add reviews -->
+          <div class="card">
+            <h3>✏️ Add Reviews Manually</h3>
+            <div class="form-group">
+              <label>Category Name</label>
+              <input type="text" id="manual-category" placeholder="e.g. Treatment Quality" />
+            </div>
+            <div class="form-group">
+              <label>Reviews (one per line)</label>
+              <textarea id="manual-reviews" style="min-height:120px;" placeholder="The dentist was very gentle and professional. Highly recommend!&#10;Clean clinic, friendly staff, quick service.&#10;Got my braces done here, very happy with the results."></textarea>
+            </div>
+            <button class="btn btn-success" onclick="addManualReviews()">➕ Add Reviews</button>
+            <div class="alert alert-success" id="manual-success" style="margin-top:12px;"></div>
+          </div>
+        </div>
+
+        <!-- ── QR CODE ── -->
+        <div class="page" id="page-qr">
+          <div class="card">
+            <h3>📱 QR Code for Staff</h3>
+            <p style="font-size:0.88rem;color:#666;margin-bottom:20px;">
+              Print this QR code and place it at your reception or staff area.
+              When staff scan it, they'll see the review templates.
+            </p>
+            <div class="qr-section" id="qr-container">
+              <button class="btn btn-primary" onclick="loadQR()">Generate QR Code</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>🔗 Direct Link</h3>
+            <p style="font-size:0.88rem;color:#666;margin-bottom:12px;">Share this link directly with staff via WhatsApp or email:</p>
+            <div id="review-link-display" style="background:#f5f5f5;padding:14px;border-radius:8px;font-family:monospace;font-size:0.9rem;word-break:break-all;color:#1a73e8;">
+              Loading...
+            </div>
+            <button class="btn btn-outline" style="margin-top:12px;" onclick="copyReviewLink()">📋 Copy Link</button>
+          </div>
+        </div>
+
+        <!-- ── SETTINGS (superadmin only) ── -->
+        <div class="page" id="page-settings">
+          <div class="card">
+            <h3>➕ Add New Business</h3>
+            <div class="alert alert-success" id="new-biz-success"></div>
+            <div class="alert alert-error" id="new-biz-error"></div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Business Name</label>
+                <input type="text" id="nb-name" placeholder="Smile Dental Clinic" />
+              </div>
+              <div class="form-group">
+                <label>Custom Slug (optional)</label>
+                <input type="text" id="nb-slug" placeholder="smile-dental-chennai" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Google Maps Review Link</label>
+              <input type="url" id="nb-glink" placeholder="https://g.page/r/..." />
+              <div class="hint">Get this from Google Maps → Your Business → Ask for Reviews → Share review form</div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Location</label>
+                <input type="text" id="nb-location" placeholder="Chennai, Tamil Nadu" />
+              </div>
+              <div class="form-group">
+                <label>Plan Expires</label>
+                <input type="date" id="nb-expires" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Keywords (comma separated)</label>
+              <textarea id="nb-keywords" placeholder="painless, experienced, clean, implants, braces"></textarea>
+            </div>
+            <button class="btn btn-primary" id="nb-btn" onclick="createBusiness()">🚀 Create Business + Generate Reviews</button>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main -->
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:3000'; // ← change to your backend URL
+let token = localStorage.getItem('review_token');
+let adminInfo = JSON.parse(localStorage.getItem('review_admin') || '{}');
+let businessId = null;
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+window.onload = () => {
+  if (token && adminInfo.id) {
+    showDashboard();
+  }
+};
+
+function showDashboard() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('admin-name-badge').textContent = adminInfo.name || adminInfo.email || 'Admin';
+
+  if (adminInfo.role === 'superadmin') {
+    document.getElementById('settings-nav').style.display = 'flex';
+  }
+
+  loadBusinessId().then(() => {
+    loadStats();
+    loadReviewLink();
+  });
+}
+
+async function loadBusinessId() {
+  const res = await apiFetch('/admin/businesses');
+  if (res.success && res.data.length > 0) {
+    businessId = res.data[0].id;
+    // Pre-fill keywords form with existing data
+    const biz = res.data[0];
+    document.getElementById('kw-name').value = biz.name || '';
+    document.getElementById('kw-location').value = biz.location || '';
+    document.getElementById('kw-keywords').value = (biz.keywords || []).join(', ');
+  }
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) {
+    showAlert('login-error', 'Please enter email and password');
+    return;
+  }
+
+  const res = await apiFetch('/auth/login', 'POST', { email, password }, false);
+
+  if (res.success) {
+    token = res.token;
+    adminInfo = res.admin;
+    localStorage.setItem('review_token', token);
+    localStorage.setItem('review_admin', JSON.stringify(adminInfo));
+    showDashboard();
+  } else {
+    showAlert('login-error', res.message || 'Login failed');
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('review_token');
+  localStorage.removeItem('review_admin');
+  token = null;
+  adminInfo = {};
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────
+function showPage(pageId, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+
+  const titles = {
+    overview: 'Overview',
+    keywords: 'Keywords & AI Generation',
+    reviews: 'Reviews Pool',
+    qr: 'QR Code',
+    settings: 'Settings'
+  };
+  document.getElementById('topbar-title').textContent = titles[pageId] || pageId;
+
+  // Load data for that page
+  if (pageId === 'reviews') loadReviews();
+  if (pageId === 'qr') { loadQR(); loadReviewLink(); }
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────
+async function loadStats() {
+  if (!businessId) return;
+  const res = await apiFetch(`/admin/stats/${businessId}`);
+  if (res.success) {
+    document.getElementById('stat-pending').textContent = res.data.pending;
+    document.getElementById('stat-used').textContent = res.data.used;
+    document.getElementById('stat-today').textContent = res.data.today;
+    document.getElementById('stat-week').textContent = res.data.thisWeek;
+
+    if (res.data.pending < 5) {
+      document.getElementById('low-reviews-warning').style.display = 'flex';
+    }
+  }
+}
+
+// ── KEYWORDS & AI ─────────────────────────────────────────────────────────
+async function updateKeywords() {
+  const btn = document.getElementById('kw-btn');
+  btn.disabled = true;
+  btn.textContent = '🤖 AI is generating reviews... (takes ~15s)';
+
+  const keywords = document.getElementById('kw-keywords').value
+    .split(',').map(k => k.trim()).filter(Boolean);
+  const categories = document.getElementById('kw-categories').value
+    .split(',').map(c => c.trim()).filter(Boolean);
+  const location = document.getElementById('kw-location').value.trim();
+
+  const res = await apiFetch(`/admin/business/${businessId}/keywords`, 'PUT', {
+    keywords, categories, location
+  });
+
+  btn.disabled = false;
+  btn.textContent = '🔄 Generate New Reviews with AI';
+
+  if (res.success) {
+    showAlert('keywords-success', '✅ 20 new reviews generated and saved!');
+    loadStats();
+  } else {
+    showAlert('keywords-error', '❌ ' + (res.message || 'Failed to generate reviews'));
+  }
+}
+
+// ── REVIEWS TABLE ─────────────────────────────────────────────────────────
+async function loadReviews() {
+  if (!businessId) return;
+  const filter = document.getElementById('reviews-filter').value;
+  const url = `/admin/business/${businessId}/reviews` + (filter ? `?status=${filter}` : '');
+  const res = await apiFetch(url);
+
+  const container = document.getElementById('reviews-table-container');
+  if (!res.success || !res.data.length) {
+    container.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">No reviews found</p>';
+    return;
+  }
+
+  const rows = res.data.map(r => `
+    <tr>
+      <td>${r.category_name}</td>
+      <td style="max-width:400px;color:#444;">${r.review_text}</td>
+      <td><span class="badge badge-${r.status.toLowerCase()}">${r.status === 'PENDING' ? 'Available' : 'Used'}</span></td>
+      <td style="color:#999;font-size:0.82rem;">${r.used_at ? new Date(r.used_at).toLocaleDateString() : '—'}</td>
+    </tr>
+  `).join('');
+
+  container.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Review Text</th>
+            <th>Status</th>
+            <th>Used On</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p style="font-size:0.82rem;color:#999;margin-top:12px;text-align:right;">Total: ${res.data.length} reviews</p>
+  `;
+}
+
+async function addManualReviews() {
+  const categoryName = document.getElementById('manual-category').value.trim();
+  const reviewsText = document.getElementById('manual-reviews').value.trim();
+
+  if (!categoryName || !reviewsText) {
+    alert('Please enter category name and reviews');
+    return;
+  }
+
+  const reviews = reviewsText.split('\n').map(r => r.trim()).filter(Boolean);
+
+  const res = await apiFetch(`/admin/business/${businessId}/add-reviews`, 'POST', {
+    categoryName, reviews
+  });
+
+  if (res.success) {
+    showAlert('manual-success', `✅ ${reviews.length} reviews added!`);
+    document.getElementById('manual-reviews').value = '';
+    loadReviews();
+    loadStats();
+  }
+}
+
+async function resetUsed() {
+  if (!confirm('Reset all USED reviews back to PENDING? This lets staff reuse the same reviews.')) return;
+  const res = await apiFetch(`/admin/business/${businessId}/reset-used`, 'POST');
+  if (res.success) {
+    alert(res.message);
+    loadStats();
+  }
+}
+
+// ── QR CODE ───────────────────────────────────────────────────────────────
+async function loadQR() {
+  if (!businessId) return;
+  const res = await apiFetch(`/admin/business/${businessId}/qr`);
+
+  if (res.success) {
+    document.getElementById('qr-container').innerHTML = `
+      <img src="${res.qr}" alt="QR Code" width="220" height="220" />
+      <div class="qr-url">${res.url}</div>
+      <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <a href="${res.qr}" download="review-qr.png">
+          <button class="btn btn-primary">⬇️ Download QR</button>
+        </a>
+        <button class="btn btn-outline" onclick="copyText('${res.url}')">📋 Copy Link</button>
+      </div>
+    `;
+  }
+}
+
+async function loadReviewLink() {
+  if (!businessId) return;
+  const res = await apiFetch('/admin/businesses');
+  if (res.success && res.data.length > 0) {
+    const slug = res.data[0].slug;
+    const link = `${window.location.origin.replace(':3001', ':4000')}/r/${slug}`;
+    document.getElementById('review-link-display').textContent = link;
+  }
+}
+
+function copyReviewLink() {
+  const text = document.getElementById('review-link-display').textContent;
+  copyText(text);
+}
+
+// ── CREATE BUSINESS (superadmin) ──────────────────────────────────────────
+async function createBusiness() {
+  const btn = document.getElementById('nb-btn');
+  btn.disabled = true;
+  btn.textContent = '🤖 Creating + generating reviews...';
+
+  const keywords = document.getElementById('nb-keywords').value
+    .split(',').map(k => k.trim()).filter(Boolean);
+
+  const body = {
+    name: document.getElementById('nb-name').value.trim(),
+    google_review_link: document.getElementById('nb-glink').value.trim(),
+    location: document.getElementById('nb-location').value.trim(),
+    plan_expires_at: document.getElementById('nb-expires').value || null,
+    keywords,
+    custom_slug: document.getElementById('nb-slug').value.trim() || null
+  };
+
+  if (!body.name || !body.google_review_link) {
+    showAlert('new-biz-error', 'Name and Google Review Link are required');
+    btn.disabled = false;
+    btn.textContent = '🚀 Create Business + Generate Reviews';
+    return;
+  }
+
+  const res = await apiFetch('/admin/business', 'POST', body);
+  btn.disabled = false;
+  btn.textContent = '🚀 Create Business + Generate Reviews';
+
+  if (res.success) {
+    showAlert('new-biz-success', `✅ Business created! Slug: ${res.slug} | URL: ${res.reviewUrl}`);
+  } else {
+    showAlert('new-biz-error', '❌ ' + (res.message || 'Failed'));
+  }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+async function apiFetch(path, method = 'GET', body = null, useAuth = true) {
+  try {
+    const opts = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(useAuth && token ? { Authorization: `Bearer ${token}` } : {})
+      }
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(API + path, opts);
+    return await res.json();
+  } catch (err) {
+    console.error('API error:', err);
+    return { success: false, message: 'Network error' };
+  }
+}
+
+function showAlert(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'alert show ' + (msg.startsWith('❌') || msg.startsWith('Error') ? 'alert-error' : 'alert-success');
+  setTimeout(() => el.classList.remove('show'), 5000);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => alert('Copied!'));
+}
+</script>
+</body>
+</html>
