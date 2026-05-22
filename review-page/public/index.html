@@ -211,7 +211,22 @@ const usedByMe     = new Set(); // IDs used by THIS device (local guard)
 // ═══════════════════════════════════════════════════════
 const container = document.getElementById('reviews-container');
 const headerEl  = document.getElementById('categories-header');
-const slug      = window.location.pathname.replace(/^\/r\/|^\//,'').split('?')[0] || 'default';
+// Extract slug from /r/slug-name
+const pathParts = window.location.pathname.split('/');
+const rIndex = pathParts.indexOf('r');
+const slug = (rIndex !== -1 && pathParts[rIndex + 1]) 
+  ? pathParts[rIndex + 1].split('?')[0] 
+  : '';
+
+// No slug = show error
+if (!slug) {
+  document.getElementById('reviews-container').innerHTML = `
+    <div class="empty-state">
+      <div class="icon">⚠️</div>
+      <h2>Invalid Link</h2>
+      <p>Please use the correct link: /r/your-clinic-name</p>
+    </div>`;
+}
 
 // ═══════════════════════════════════════════════════════
 //  FETCH — gets fresh data from server

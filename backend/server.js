@@ -7,7 +7,7 @@ const app = express();
 
 app.use(cors({
 origin:[
-'https://dental-review-system.vercel.app',
+'https://dental-review-page.onrender.com',
 'https://dental-admin-dashboard.onrender.com',
 'http://localhost:4000',
 'http://localhost:5500'

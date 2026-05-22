@@ -7,9 +7,10 @@ const express = require('express');
 const path    = require('path');
 const app     = express();
 
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static assets (css, js, fonts etc) but NOT index.html directly
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
-// Serve index.html for ALL routes — slug is read by the frontend JS
+// ALL routes serve index.html — slug is read by frontend JS
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
