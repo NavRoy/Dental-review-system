@@ -5,7 +5,16 @@ const cors = require('cors');
 
 const app = express();
 
-app.use(cors({ origin: '*' })); // In production, set your frontend URL
+app.use(cors({
+origin:[
+'https://dental-review-system.vercel.app',
+'https://dental-admin-dashboard.onrender.com',
+'http://localhost:4000',
+'http://localhost:5500'
+],
+credentials:true
+}));
+// In production, set your frontend URL
 app.use(express.json());
 
 // Routes
