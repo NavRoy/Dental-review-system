@@ -72,7 +72,10 @@ router.get('/:slug', async (req, res) => {
           categoryName: cat.name,
           reviews: reviewResult.rows.map(r => ({
             ...r,
-            customer: { reviewLink: business.google_review_link }
+           customer: { 
+  reviewLink: business.google_review_link,
+  reviewLinkMobile: business.google_review_link_mobile || business.google_review_link
+}
           }))
         };
       })

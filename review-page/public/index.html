@@ -395,7 +395,11 @@ async function onCopy(review, card, btn) {
   btn.textContent = '✓ Copied! Opening Google...';
 
   // ── 4. Open Google (slight delay so clipboard finishes) ──
-  setTimeout(() => window.open(review.customer.reviewLink, '_blank'), 150);
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+const link = isMobile 
+  ? review.customer.reviewLinkMobile 
+  : review.customer.reviewLink;
+setTimeout(() => window.open(link, '_blank'), 150);
 
   // ── 5. Remove from local state immediately ──
   usedByMe.add(review.id);
