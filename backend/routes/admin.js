@@ -101,7 +101,13 @@ router.post('/business', auth, async (req, res) => {
 
     // Generate AI reviews
     console.log('Calling AI to generate reviews...');
-    const aiData = await generateReviews({ name, location, keywords, categories });
+   const aiData = await generateReviews({
+  name: business.name,
+  location: business.location || '',
+  keywords: business.keywords || [],
+  categories: categories.map(c => c.name),
+  doctor_name: business.doctor_name || ''
+});
 
     // Save categories and reviews to DB
     for (const cat of aiData.categories) {

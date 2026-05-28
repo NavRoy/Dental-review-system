@@ -34,11 +34,12 @@ async function generateWithGroq(business) {
 }
 
 function buildPrompt(business) {
-  const { name, location, keywords = [], categories = [] } = business;
+  const { name, location, keywords = [], categories = [], doctor_name } = business;
 
   const categoryList = categories.length > 0
     ? categories.join(', ')
-    : 'Treatment Quality, Doctor & Staff, Cleanliness & Comfort, Overall Experience';
+    // REPLACE:
+: 'Dentist, Dental Treatment, Smile Designing, Tooth Removal, Root Canal Treatment, Braces, Aligners, Tooth Fillings';
 
   return `You are an expert at writing authentic Google reviews for dental clinics.
 
@@ -48,6 +49,8 @@ Keywords to naturally include: ${keywords.join(', ') || 'painless treatment, fri
 
 Rules:
 - Sound like real patients wrote these
+- Mention "Dr. Sandeep" by name in 2-3 reviews naturally — not in every review, only where it feels genuine
+- The clinic doctor's name is ${doctor_name || 'the doctor'}. Mention "${doctor_name || 'the doctor'}" by name in 2-3 reviews naturally — not in every review, only where it feels genuine
 - Vary the length — some 1-2 lines (casual), some 3-4 lines (detailed)
 - Mix tones: relieved, grateful, impressed, casual
 - Each review must be completely unique — no repetition across categories
