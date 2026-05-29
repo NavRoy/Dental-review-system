@@ -5,7 +5,7 @@ const db      = require('../services/db');
 // ── CONFIG ────────────────────────────────────────────────────────────────
 const MAX_PER_CAT       = 10;   // always serve 10 per category
 const CLAIM_EXPIRY_SEC  = 30;   // unclaimed review released after 30s
-const LOW_WATER_MARK    = 25;   // start regen when pending drops below this
+const LOW_WATER_MARK    = 40;   // start regen when pending drops below this
 const regenInProgress   = new Set(); // prevent double-regen per business
 
 // ── GET /review/:slug ─────────────────────────────────────────────────────

@@ -36,53 +36,64 @@ async function generateWithGroq(business) {
 function buildPrompt(business) {
   const { name, location, keywords = [], categories = [], doctor_name } = business;
 
+  // ✅ FIXED: removed stray comment that broke the syntax
   const categoryList = categories.length > 0
     ? categories.join(', ')
-    // REPLACE:
-: 'Dentist, Dental Treatment, Smile Designing, Tooth Removal, Root Canal Treatment, Braces, Aligners, Tooth Fillings';
+    : 'Dentist, Dental Treatment, Smile Designing, Tooth Removal, Root Canal Treatment, Braces, Aligners, Tooth Fillings';
 
   return `You are an expert at writing authentic Google reviews for dental clinics.
 
-Generate 60 genuine-sounding Google reviews for a dental clinic called "${name}" located in ${location || 'Chennai, India'}.
+Generate 40 genuine-sounding Google reviews for a dental clinic called "${name}" located in ${location || 'Srikakulam, Andhra Pradesh'}.
 
 Keywords to naturally include: ${keywords.join(', ') || 'painless treatment, friendly staff, clean clinic, professional'}
 
 Rules:
 - Sound like real patients wrote these
-- Mention "Dr. Sandeep" by name in 2-3 reviews naturally — not in every review, only where it feels genuine
-- The clinic doctor's name is ${doctor_name || 'the doctor'}. Mention "${doctor_name || 'the doctor'}" by name in 2-3 reviews naturally — not in every review, only where it feels genuine
+- The clinic doctor's name is ${doctor_name || 'Dr. Sandeep'}. Mention this name in 2-3 reviews naturally — not in every review, only where it feels genuine
 - Vary the length — some 1-2 lines (casual), some 3-4 lines (detailed)
 - Mix tones: relieved, grateful, impressed, casual
 - Each review must be completely unique — no repetition across categories
-- Naturally mention treatments like cleaning, extraction, braces, implants, root canal, etc.
+- Naturally mention treatments like cleaning, extraction, braces, implants, root canal etc.
 - Do NOT mention specific prices
 - Do NOT use fake-sounding superlatives like "best clinic in the world"
 
-Organize into exactly these 4 categories: ${categoryList}
-Each category must have exactly 15 reviews.
+Organize into exactly these 8 categories: ${categoryList}
+Each category must have exactly 5 reviews.
 
 Return ONLY a valid JSON object (no other text, no markdown fences):
 {
   "categories": [
     {
-      "categoryName": "Treatment Quality",
-      "reviews": [
-        "review 1", "review 2", "review 3", "review 4", "review 5",
-        "review 6", "review 7", "review 8", "review 9", "review 10",
-        "review 11", "review 12", "review 13", "review 14", "review 15"
-      ]
+      "categoryName": "Dentist",
+      "reviews": ["review 1", "review 2", "review 3", "review 4", "review 5"]
     },
     {
-      "categoryName": "Doctor & Staff",
-      "reviews": ["15 reviews here..."]
+      "categoryName": "Dental Treatment",
+      "reviews": ["review 1", "review 2", "review 3", "review 4", "review 5"]
     },
     {
-      "categoryName": "Cleanliness & Comfort",
-      "reviews": ["15 reviews here..."]
+      "categoryName": "Smile Designing",
+      "reviews": ["review 1", "review 2", "review 3", "review 4", "review 5"]
     },
     {
-      "categoryName": "Overall Experience",
-      "reviews": ["15 reviews here..."]
+      "categoryName": "Tooth Removal",
+      "reviews": ["review 1", "review 2", "review 3", "review 4", "review 5"]
+    },
+    {
+      "categoryName": "Root Canal Treatment",
+      "reviews": ["review 1", "review 2", "review 3", "review 4", "review 5"]
+    },
+    {
+      "categoryName": "Braces",
+      "reviews": ["review 1", "review 2", "review 3", "review 4", "review 5"]
+    },
+    {
+      "categoryName": "Aligners",
+      "reviews": ["review 1", "review 2", "review 3", "review 4", "review 5"]
+    },
+    {
+      "categoryName": "Tooth Fillings",
+      "reviews": ["review 1", "review 2", "review 3", "review 4", "review 5"]
     }
   ]
 }`;
